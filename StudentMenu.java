@@ -11,7 +11,7 @@ class StudentMenu implements UserMenu {
 		System.out.println("Please select student menu\n" +
 				"1) Student report\n" +
 				"2) View time table\n" +
-				"0) Exit\n");
+				"0) Exit");
 	}
 
 	@Override

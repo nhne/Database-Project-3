@@ -10,7 +10,7 @@ class InstructorMenu implements UserMenu {
 		System.out.println("Please select instructor menu\n" +
 				"1) Course report\n" +
 				"2) Advisee report\n" +
-				"0) Exit\n");
+				"0) Exit");
 	}
 
 	@Override
