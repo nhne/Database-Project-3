@@ -17,7 +17,8 @@ class InstructorMenu implements UserMenu {
 	public void executeMenu(int num, String userId, String userName) {
 		if(num == 1){ // building Course Report
 			try{
-				String semester, year, sh, sm, eh, em;
+				String semester, year;
+				int sh, sm, eh, em;
 				semester = year = sh = sm = eh = em = "";
 				
 				//getting most recent semester
@@ -36,15 +37,16 @@ class InstructorMenu implements UserMenu {
 						+ "((select * from semsummer) union (select * from semfall));";
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs0 = ps.executeQuery();
-				rs0.next();
-				year = rs0.getString(2);
-				semester = rs0.getString(3);
 				
 				// when data aren't exist
-				if(year == ""){
+				if(!rs0.next()){
 					System.out.println("no data found!");
+					rs0.close();
+					ps.close();
 					return;
 				}
+				year = rs0.getString(2);
+				semester = rs0.getString(3);
 				
 				System.out.println("Course report - " + year + " " + semester);
 				do{
@@ -70,6 +72,7 @@ class InstructorMenu implements UserMenu {
 					ps = conn.prepareStatement(sql);
 					rs = ps.executeQuery();
 					rs.next();
+					// print in format "[building room_number] (day... sh:sm - eh:em)"
 					resultString += "[" + rs.getString(1) + " " + rs.getString(2) + "] ";
 					resultString += "(" + rs.getString(3);
 					while(rs.next()){
@@ -81,7 +84,8 @@ class InstructorMenu implements UserMenu {
 					}
 					resultString += " " + sh + " : " + sm + " - ";
 					resultString += eh + " : " + em + ")";
-					System.out.println(resultString);
+					//System.out.println(resultString);
+					System.out.format("[%s %s] (%s %2d : %2d - %2d : %2d\n", building, room_number, days, sh, sm, eh, em);
 				
 					//Printing Student's data
 					sql = "select ID, name, dept_name, grade from student natural join takes"
@@ -104,6 +108,34 @@ class InstructorMenu implements UserMenu {
 				}while(rs0.next());
 				ps.close();
 				rs0.close();
+			}catch(SQLException e){
+				System.out.println(e);
+			}
+		}else if(num == 2){ // building Advisee Report
+			try{
+				String ID, name, dept_name, tot_cred;
+				String sql = "select * from advisor, student"
+						+ " where advisor.S_ID=student.ID"
+						+ " and advisor.I_ID=" + userId + ";";
+				PreparedStatement ps = conn.prepareStatement(sql);
+				ResultSet rs = ps.executeQuery();
+				//if there are no data
+				if(!rs.next()){
+					System.out.println("no advisor data found!");
+					ps.close();
+					rs.close();
+					return;
+				}
+				System.out.println("ID\tname\tdept_name\ttot_cred");
+				do{
+					ID = rs.getString(3);
+					name = rs.getString(4);
+					dept_name = rs.getString(5);
+					tot_cred = rs.getString(6);
+					System.out.format("%s\t%s\t%s\t%s\n", ID, name, dept_name, tot_cred);
+				}while(rs.next());
+				ps.close();
+				rs.close();
 			}catch(SQLException e){
 				System.out.println(e);
 			}
