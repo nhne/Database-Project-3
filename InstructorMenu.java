@@ -59,7 +59,7 @@ class InstructorMenu implements UserMenu {
 					sql = "select building, room_number, day, start_hr, start_min, end_hr, end_min,"
 							+ " (select title from Course where course_id='" + course_id + "')"
 							+ " from Section natural join time_slot"
-							+ " where Section.course_id='" + course_id + "'"
+							+ " where course_id='" + course_id + "'"
 							+ " and sec_id='" + sec_id + "'"
 							+ " and semester='" + semester + "'"
 							+ " and year=" + year;
