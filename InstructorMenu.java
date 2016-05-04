@@ -56,17 +56,11 @@ class InstructorMenu implements UserMenu {
 					String sec_id = rs0.getString(4);
 					ResultSet rs;
 					
-					//getting course's title
-					sql = "select title from Course where course_id='" + course_id + "';";
-					ps = conn.prepareStatement(sql);
-					rs = ps.executeQuery();
-					rs.next();
-					title = rs.getString(1);
-					
-					//getting other information
-					sql = "select building, room_number, day, start_hr, start_min, end_hr, end_min"
+					//getting Course information
+					sql = "select building, room_number, day, start_hr, start_min, end_hr, end_min,"
+							+ " (select title from Course where course_id='" + course_id + "')"
 							+ " from Section natural join time_slot"
-							+ " where course_id='" + course_id + "'"
+							+ " where Section.course_id='" + course_id + "'"
 							+ " and sec_id='" + sec_id + "'"
 							+ " and semester='" + semester + "'"
 							+ " and year=" + year;
@@ -74,6 +68,7 @@ class InstructorMenu implements UserMenu {
 					rs = ps.executeQuery();
 					
 					rs.next();
+					title = rs.getString(8);
 					building = rs.getString(1);
 					room_number = rs.getString(2);
 					days = rs.getString(3);
