@@ -1,4 +1,4 @@
-import java.sql.Connection;
+import java.sql.*;
 
 class InstructorMenu implements UserMenu {
 	private Connection conn;
@@ -15,6 +15,101 @@ class InstructorMenu implements UserMenu {
 
 	@Override
 	public void executeMenu(int num, String userId, String userName) {
+		if(num == 1){ // building Course Report
+			try{
+				String semester, year, sh, sm, eh, em;
+				semester = year = sh = sm = eh = em = "";
+				
+				//getting most recent semester
+				String sql = "with t1 as (select course_id, year, semester, sec_id from Teaches"
+						+ " where id=" + userId
+						+ " and year=(select max(year) from Teaches"
+						+ " where id=" + userId + ")),"
+						+ " semfall as (select * from t1 where semester='Fall'),"
+						+ " semsummer as (select * from t1 where semester='Summer'),"
+						+ " semspring as (select * from t1 where semester='Spring')"
+						+ " select * from semfall"
+						+ " union"
+						+ " select * from semsummer where not exists (select * from semfall)"
+						+ " union"
+						+ " select * from semspring where not exists"
+						+ "((select * from semsummer) union (select * from semfall));";
+				PreparedStatement ps = conn.prepareStatement(sql);
+				ResultSet rs0 = ps.executeQuery();
+				rs0.next();
+				year = rs0.getString(2);
+				semester = rs0.getString(3);
+				
+				// when data aren't exist
+				if(year == ""){
+					System.out.println("no data found!");
+					return;
+				}
+				
+				System.out.println("Course report - " + year + " " + semester);
+				do{
+					String course_id = rs0.getString(1);
+					String sec_id = rs0.getString(4);
+					ResultSet rs;
+					String resultString = course_id + " ";
+					
+					//getting course's title
+					sql = "select title from Course where course_id='" + course_id + "';";
+					ps = conn.prepareStatement(sql);
+					rs = ps.executeQuery();
+					rs.next();
+					resultString += rs.getString(1) + " ";
+					
+					//getting other information
+					sql = "select building, room_number, day, start_hr, start_min, end_hr, end_min"
+							+ " from Section natural join time_slot"
+							+ " where course_id='" + course_id + "'"
+							+ " and sec_id='" + sec_id + "'"
+							+ " and semester='" + semester + "'"
+							+ " and year=" + year;
+					ps = conn.prepareStatement(sql);
+					rs = ps.executeQuery();
+					rs.next();
+					resultString += "[" + rs.getString(1) + " " + rs.getString(2) + "] ";
+					resultString += "(" + rs.getString(3);
+					while(rs.next()){
+						resultString += ", " + rs.getString(3);
+						sh = rs.getString(4);
+						sm = rs.getString(5);
+						eh = rs.getString(6);
+						em = rs.getString(7);
+					}
+					resultString += " " + sh + " : " + sm + " - ";
+					resultString += eh + " : " + em + ")";
+					System.out.println(resultString);
+				
+					//Printing Student's data
+					sql = "select ID, name, dept_name, grade from student natural join takes"
+							+ " where course_id='" + course_id + "'"
+							+ " and sec_id=" + sec_id 
+							+ " and semester='" + semester + "'"
+							+ " and year=" + year + ";";
+					ps = conn.prepareStatement(sql);
+					rs = ps.executeQuery();
+					
+					System.out.println("ID\tname\tdept_name\tgrade");
+					while(rs.next()){
+						resultString = "";
+						for(int j = 0; j < 4; j++){
+							resultString += rs.getString(j + 1) + "\t";
+						}
+						System.out.println(resultString);
+					}
+					rs.close();
+				}while(rs0.next());
+				ps.close();
+				rs0.close();
+			}catch(SQLException e){
+				System.out.println(e);
+			}
+		}else{
+			System.out.println("something gone wrong");
+		}
 
 	}
 }
