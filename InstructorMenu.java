@@ -18,10 +18,8 @@ class InstructorMenu implements UserMenu {
 		if(num == 1){ // building Course Report
 			try{
 				String semester, year;
-				int sh, sm, eh, em;
-				semester = year = sh = sm = eh = em = "";
 				
-				//getting most recent semester
+				//getting most recent year and semester
 				String sql = "with t1 as (select course_id, year, semester, sec_id from Teaches"
 						+ " where id=" + userId
 						+ " and year=(select max(year) from Teaches"
@@ -38,7 +36,7 @@ class InstructorMenu implements UserMenu {
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs0 = ps.executeQuery();
 				
-				// when data aren't exist
+				// If there are no data
 				if(!rs0.next()){
 					System.out.println("no data found!");
 					rs0.close();
@@ -50,17 +48,20 @@ class InstructorMenu implements UserMenu {
 				
 				System.out.println("Course report - " + year + " " + semester);
 				do{
+					String title, building, room_number, days;
+					int sh, sm, eh, em;
+					sh = sm = eh = em = 0;
+
 					String course_id = rs0.getString(1);
 					String sec_id = rs0.getString(4);
 					ResultSet rs;
-					String resultString = course_id + " ";
 					
 					//getting course's title
 					sql = "select title from Course where course_id='" + course_id + "';";
 					ps = conn.prepareStatement(sql);
 					rs = ps.executeQuery();
 					rs.next();
-					resultString += rs.getString(1) + " ";
+					title = rs.getString(1);
 					
 					//getting other information
 					sql = "select building, room_number, day, start_hr, start_min, end_hr, end_min"
@@ -71,21 +72,22 @@ class InstructorMenu implements UserMenu {
 							+ " and year=" + year;
 					ps = conn.prepareStatement(sql);
 					rs = ps.executeQuery();
+					
 					rs.next();
-					// print in format "[building room_number] (day... sh:sm - eh:em)"
-					resultString += "[" + rs.getString(1) + " " + rs.getString(2) + "] ";
-					resultString += "(" + rs.getString(3);
+					building = rs.getString(1);
+					room_number = rs.getString(2);
+					days = rs.getString(3);
+					sh = rs.getInt(4);
+					sm = rs.getInt(5);
+					eh = rs.getInt(6);
+					em = rs.getInt(7);
 					while(rs.next()){
-						resultString += ", " + rs.getString(3);
-						sh = rs.getString(4);
-						sm = rs.getString(5);
-						eh = rs.getString(6);
-						em = rs.getString(7);
+						days += ", " + rs.getString(3);
 					}
-					resultString += " " + sh + " : " + sm + " - ";
-					resultString += eh + " : " + em + ")";
-					//System.out.println(resultString);
-					System.out.format("[%s %s] (%s %2d : %2d - %2d : %2d\n", building, room_number, days, sh, sm, eh, em);
+					// print in format "[building room_number] (day... sh:sm - eh:em)"
+					System.out.format("%s\t%s\t", course_id, title);
+					System.out.format("[%s %s] (%s ", building, room_number, days);
+					System.out.format("%02d : %02d - %02d : %2d)\n", sh, sm, eh, em);
 				
 					//Printing Student's data
 					sql = "select ID, name, dept_name, grade from student natural join takes"
@@ -98,7 +100,7 @@ class InstructorMenu implements UserMenu {
 					
 					System.out.println("ID\tname\tdept_name\tgrade");
 					while(rs.next()){
-						resultString = "";
+						String resultString = "";
 						for(int j = 0; j < 4; j++){
 							resultString += rs.getString(j + 1) + "\t";
 						}
