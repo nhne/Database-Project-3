@@ -18,7 +18,6 @@ class InstructorMenu implements UserMenu {
 		if(num == 1){ // building Course Report
 			try{
 				String semester, year;
-				
 				//getting most recent year and semester
 				String sql = "with t1 as (select course_id, year, semester, sec_id from Teaches"
 						+ " where id=" + userId
