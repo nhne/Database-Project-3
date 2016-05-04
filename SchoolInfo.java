@@ -55,7 +55,7 @@ public class SchoolInfo {
 
 		// Set up menu
 		UserMenu userMenu;
-		if (userType.equals("student"))
+		if (userType.equals("Student"))
 			userMenu = new StudentMenu(conn);
 		else
 			userMenu = new InstructorMenu(conn);
