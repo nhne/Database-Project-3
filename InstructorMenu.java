@@ -19,19 +19,14 @@ class InstructorMenu implements UserMenu {
 			try{
 				String semester, year;
 				//getting most recent year and semester
-				String sql = "with t1 as (select course_id, year, semester, sec_id from Teaches"
-						+ " where id=" + userId
-						+ " and year=(select max(year) from Teaches"
-						+ " where id=" + userId + ")),"
-						+ " semfall as (select * from t1 where semester='Fall'),"
-						+ " semsummer as (select * from t1 where semester='Summer'),"
-						+ " semspring as (select * from t1 where semester='Spring')"
-						+ " select * from semfall"
-						+ " union"
-						+ " select * from semsummer where not exists (select * from semfall)"
-						+ " union"
-						+ " select * from semspring where not exists"
-						+ "((select * from semsummer) union (select * from semfall));";
+				String sql = "with t1 as (select course_id, year, semester, sec_id"
+						+ " (year * 10 + case"
+						+ " when semester='Spring' then 1"
+						+ " when semester='Summer' then 2"
+						+ " When semester='Fall' then 3"
+						+ " else 4 end)) as year_sem from teaches where id=" + userId
+						+ " select * from t1"
+						+ " where year_sem >= all (select year_sem from T)";
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs0 = ps.executeQuery();
 				
